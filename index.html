@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리 집 성평등 온도 자가진단</title>
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --bg-color: #F7F9FC;
+      --card-bg: #FFFFFF;
+      --text-color: #333333;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 650px;
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .description {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .question-card {
+      background: #FAFAFA;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #EAEAEA;
+    }
+
+    .question-text {
+      font-size: 15px;
+      font-weight: 500;
+      width: 70%;
+      line-height: 1.4;
+    }
+
+    .options {
+      display: flex;
+      gap: 12px;
+    }
+
+    .options label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button.submit-btn {
+      width: 100%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s ease;
+    }
+
+    button.submit-btn:hover {
+      background-color: #357ABD;
+    }
+
+    /* 결과 영역 */
+    #result-section {
+      display: none;
+      margin-top: 30px;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .score-badge {
+      display: inline-block;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .result-desc {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    /* 진단 등급별 스타일 */
+    .level-high { background-color: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; }
+    .level-mid { background-color: #FFF8E1; color: #F57F17; border: 1px solid #FFECB3; }
+    .level-low { background-color: #FFEBEE; color: #C62828; border: 1px solid #FFCDD2; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🏡 우리 집 성평등 온도 자가진단</h1>
+  <p class="description">
+    우리 가족의 생활 모습을 생각하며 각 문항에 답해 보세요.<br>
+    솔직하게 응답할수록 더 정확한 결과를 확인하실 수 있습니다.
+  </p>
+
+  <form id="quiz-form">
+    <div id="questions-container"></div>
+    <button type="button" class="submit-btn" onclick="calculateResult()">결과 확인하기</button>
+  </form>
+
+  <div id="result-section">
+    <div class="score-badge" id="score-text">0점</div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-desc" id="result-desc"></div>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    "1. 밥 차리기, 설거지, 청소, 빨래는 특정 사람만 하지 않고 다 같이 나눠서 하나요?",
+    "2. 아이를 돌보거나 교육할 때 엄마, 아빠 모두 적극적으로 같이 참여하나요?",
+    "3. 집을 이사하거나 큰 돈을 쓸 때 한 사람 마음대로 하지 않고 함께 이야기 나누나요?",
+    "4. 주말이나 퇴근 후, 누구 하나만 일하지 않고 서로 자기만의 휴식 시간을 챙겨주나요?",
+    "5. \"남자가 왜 울어?\", \"여자가 조신해야지\" 같은 말로 행동을 제한하지 않나요?",
+    "6. 아이의 꿈이나 장래희망을 응원할 때 성별보다 아이가 좋아하는 것을 먼저 고려하나요?",
+    "7. 명절이나 집안 행사가 있을 때 다 함께 일하고 다 함께 쉬는 분위기인가요?",
+    "8. 서로 이야기할 때 성별을 이유로 무시하거나 상처 주는 말을 하지 않나요?",
+    "9. 집안일 챙기기, 기념일 준비 같은 신경 쓰는 일까지 한 사람에게 몰리지 않나요?",
+    "10. 성별이나 나이와 상관없이 누구든 자기 의견을 편하게 말하고 잘 들어주나요?"
+  ];
+
+  // 질문 렌더링
+  const container = document.getElementById('questions-container');
+  questions.forEach((q, index) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.innerHTML = `
+      <div class="question-text">${q}</div>
+      <div class="options">
+        <label><input type="radio" name="q${index}" value="1"> 그렇다</label>
+        <label><input type="radio" name="q${index}" value="0" checked> 아니다</label>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // 결과 계산
+  function calculateResult() {
+    let score = 0;
+    for (let i = 0; i < questions.length; i++) {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (selected) {
+        score += parseInt(selected.value);
+      }
+    }
+
+    const totalScore = score * 10; // 100점 만점으로 환산
+    const resultSection = document.getElementById('result-section');
+    const scoreText = document.getElementById('score-text');
+    const resultTitle = document.getElementById('result-title');
+    const resultDesc = document.getElementById('result-desc');
+
+    scoreText.innerText = `${totalScore}점 / 100점`;
+    resultSection.style.display = 'block';
+
+    // 클래스 초기화
+    resultSection.className = '';
+
+    if (totalScore >= 80) {
+      resultSection.classList.add('level-high');
+      resultTitle.innerText = "🌟 양호: 따뜻하고 평등한 우리 집";
+      resultDesc.innerHTML = "가족 구성원 서로를 깊이 배려하고 존중하는 문화가 훌륭하게 자리 잡혀 있습니다!<br>지금처럼 서로의 역할과 마음을 나눈다면 계속해서 행복한 가정을 유지할 수 있어요.";
+    } else if (totalScore >= 50) {
+      resultSection.classList.add('level-mid');
+      resultTitle.innerText = "🌤️ 보통: 발전 가능성이 높은 우리 집";
+      resultDesc.innerHTML = "전반적으로 평등을 지향하고 있지만, 특정 영역(가사 분담, 감정 노동, 명절 등)에서 여전히 특정 사람에게 부담이 쏠리고 있을 수 있습니다.<br>아쉽다고 느낀 문항에 대해 가족과 함께 이야기를 나눠보세요.";
+    } else {
+      resultSection.classList.add('level-low');
+      resultTitle.innerText = "🌧️ 점검 필요: 대화와 관심이 필요한 우리 집";
+      resultDesc.innerHTML = "기존의 익숙함이나 성역할 고정관념으로 인해 어느 한쪽이 부담과 지침을 느끼고 있을 가능성이 높습니다.<br>오늘 저녁 작은 집안일부터 함께 나누어 해보는 것은 어떨까요?";
+    }
+
+    // 결과 화면으로 스크롤 이동
+    resultSection.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
